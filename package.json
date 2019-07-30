@@ -1,7 +1,7 @@
 {
-  "name": "velocity-animate",
+  "name": "velocity-animate-eapp",
   "version": "2.0.5",
-  "description": "Accelerated JavaScript animation.",
+  "description": "Accelerated JavaScript animation for dingtalk eapp.",
   "keywords": [
     "velocity",
     "animation",
@@ -25,6 +25,10 @@
     {
       "name": "Ryc O'Chet",
       "url": "https://github.com/Rycochet"
+    },
+    {
+      "name": "shecenon",
+      "url": "https://github.com/shecenon"
     }
   ],
   "scripts": {

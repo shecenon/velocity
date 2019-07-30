@@ -99,24 +99,24 @@ namespace VelocityStatic {
 
 /* IE detection. Gist: https://gist.github.com/julianshapiro/9098609 */
 const IE = (() => {
-	interface IEDocument extends Document {
-		documentMode: any; // IE
-	}
+	// interface IEDocument extends Document {
+	// 	documentMode: any; // IE
+	// }
 
-	if ((document as IEDocument).documentMode) {
-		return (document as IEDocument).documentMode;
-	} else {
-		for (let i = 7; i > 4; i--) {
-			let div = document.createElement("div");
+	// if ((document as IEDocument).documentMode) {
+	// 	return (document as IEDocument).documentMode;
+	// } else {
+	// 	for (let i = 7; i > 4; i--) {
+	// 		let div = document.createElement("div");
 
-			div.innerHTML = `<!${"--"}[if IE ${i}]><span></span><![endif]-->`;
-			if (div.getElementsByTagName("span").length) {
-				div = null;
+	// 		div.innerHTML = `<!${"--"}[if IE ${i}]><span></span><![endif]-->`;
+	// 		if (div.getElementsByTagName("span").length) {
+	// 			div = null;
 
-				return i;
-			}
-		}
-	}
+	// 			return i;
+	// 		}
+	// 	}
+	// }
 
 	return undefined;
 })();

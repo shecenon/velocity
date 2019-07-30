@@ -325,8 +325,8 @@ function generateBezier(mX1, mY1, mX2, mY2) {
         SUBDIVISION_PRECISION = 0.0000001,
         SUBDIVISION_MAX_ITERATIONS = 10,
         kSplineTableSize = 11,
-        kSampleStepSize = 1 / (kSplineTableSize - 1),
-        float32ArraySupported = "Float32Array" in window;
+        kSampleStepSize = 1 / (kSplineTableSize - 1);
+    // float32ArraySupported = "Float32Array" in window;
     /* Must contain four arguments. */
     if (arguments.length !== 4) {
         return;
@@ -340,7 +340,8 @@ function generateBezier(mX1, mY1, mX2, mY2) {
     /* X values must be in the [0, 1] range. */
     mX1 = fixRange(mX1);
     mX2 = fixRange(mX2);
-    var mSampleValues = float32ArraySupported ? new Float32Array(kSplineTableSize) : new Array(kSplineTableSize);
+    // const mSampleValues = float32ArraySupported ? new Float32Array(kSplineTableSize) : new Array(kSplineTableSize);
+    var mSampleValues = new Array(kSplineTableSize);
     function newtonRaphsonIterate(aX, aGuessT) {
         for (var _i = 0; _i < NEWTON_ITERATIONS; ++_i) {
             var currentSlope = getSlope(aGuessT, mX1, mX2);
@@ -1053,9 +1054,10 @@ function Data(element) {
     for (var index = 0; index < constructors.length; index++) {
         var _constructor = constructors[index];
         if (isString(_constructor)) {
-            if (element instanceof window[_constructor]) {
-                types |= 1 << index; // tslint:disable-line:no-bitwise
-            }
+            console.warn("donot support", _constructor);
+            // if (element instanceof window[constructor]) {
+            // 	types |= 1 << index; // tslint:disable-line:no-bitwise
+            // }
         } else if (element instanceof _constructor) {
             types |= 1 << index; // tslint:disable-line:no-bitwise
         }
@@ -1078,15 +1080,16 @@ function Data(element) {
 }
 
 // Constants
-var isClient = window && window === window.window,
-    windowScrollAnchor = isClient && window.pageYOffset !== undefined;
+var isClient = true,
+    //window && window === window.window,
+windowScrollAnchor = false; //isClient && window.pageYOffset !== undefined;
 var State = {
     isClient: isClient,
-    isMobile: isClient && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
-    isGingerbread: isClient && /Android 2\.3\.[3-7]/i.test(navigator.userAgent),
-    prefixElement: isClient && document.createElement("div"),
+    isMobile: true,
+    isGingerbread: false,
+    // prefixElement: isClient && document.createElement("div"),
     windowScrollAnchor: windowScrollAnchor,
-    scrollAnchor: windowScrollAnchor ? window : !isClient || document.documentElement || document.body.parentNode || document.body,
+    scrollAnchor: false,
     scrollPropertyLeft: windowScrollAnchor ? "pageXOffset" : "scrollLeft",
     scrollPropertyTop: windowScrollAnchor ? "pageYOffset" : "scrollTop",
     className: CLASSNAME,
@@ -1332,7 +1335,8 @@ function registerNormalization(args) {
     var constructor = args[0],
         name = args[1],
         callback = args[2];
-    if (isString(constructor) && !(window[constructor] instanceof Object) || !isString(constructor) && !(constructor instanceof Object)) {
+    if ( //(isString(constructor) && !(window[constructor] instanceof Object)) ||
+    !isString(constructor) && !(constructor instanceof Object)) {
         console.warn("VelocityJS: Trying to set 'registerNormalization' constructor to an invalid value:", constructor);
     } else if (!isString(name)) {
         console.warn("VelocityJS: Trying to set 'registerNormalization' name to an invalid value:", name);
@@ -1345,17 +1349,18 @@ function registerNormalization(args) {
             if (constructorCache.has(constructor)) {
                 index = constructors.indexOf(constructorCache.get(constructor));
             } else {
-                for (var property in window) {
-                    if (window[property] === constructor) {
-                        index = constructors.indexOf(property);
-                        if (index < 0) {
-                            index = constructors.push(property) - 1;
-                            Normalizations[index] = {};
-                            constructorCache.set(constructor, property);
-                        }
-                        break;
-                    }
-                }
+                console.warn("VelocityJS: Do not support 'registerNormalization' :", name, callback);
+                // for (const property in window) {
+                // 	if (window[property] === constructor) {
+                // 		index = constructors.indexOf(property);
+                // 		if (index < 0) {
+                // 			index = constructors.push(property) - 1;
+                // 			Normalizations[index] = {};
+                // 			constructorCache.set(constructor, property);
+                // 		}
+                // 		break;
+                // 	}
+                // }
             }
         }
         if (index < 0) {
@@ -1387,12 +1392,13 @@ function hasNormalization(args) {
         if (constructorCache.has(constructor)) {
             index = constructors.indexOf(constructorCache.get(constructor));
         } else {
-            for (var property in window) {
-                if (window[property] === constructor) {
-                    index = constructors.indexOf(property);
-                    break;
-                }
-            }
+            console.warn("VelocityJS: do not support property", name);
+            // for (const property in window) {
+            // 	if (window[property] === constructor) {
+            // 		index = constructors.indexOf(property);
+            // 		break;
+            // 	}
+            // }
         }
     }
     return index >= 0 && Normalizations[index].hasOwnProperty(name);
@@ -2157,9 +2163,9 @@ progressed = new Set(),
  * Shim for window.performance in case it doesn't exist
  */
 performance = function () {
-    var perf = window.performance || {};
+    var perf = {};
     if (typeof perf.now !== "function") {
-        var nowOffset = perf.timing && perf.timing.navigationStart ? perf.timing.navigationStart : now();
+        var nowOffset = now();
         perf.now = function () {
             return now() - nowOffset;
         };
@@ -2181,7 +2187,7 @@ rAFProxy = function rAFProxy(callback) {
 /**
  * Either requestAnimationFrame, or a shim for it.
  */
-rAFShim = window.requestAnimationFrame || rAFProxy;
+rAFShim = rAFProxy;
 /**
  * Set if we are currently inside a tick() to prevent double-calling.
  */
@@ -3816,42 +3822,38 @@ if (prefixElement) {
     }
 }
 
-// Project
 /**
  * Get/set an attribute.
  */
-function getAttribute(name) {
-    return function (element, propertyValue) {
-        if (propertyValue === undefined) {
-            return element.getAttribute(name);
-        }
-        element.setAttribute(name, propertyValue);
-    };
-}
-var base = document.createElement("div"),
-    rxSubtype = /^SVG(.*)Element$/,
-    rxElement = /Element$/;
-Object.getOwnPropertyNames(window).forEach(function (property) {
-    var subtype = rxSubtype.exec(property);
-    if (subtype && subtype[1] !== "SVG") {
-        // Don't do SVGSVGElement.
-        try {
-            var element = subtype[1] ? document.createElementNS("http://www.w3.org/2000/svg", (subtype[1] || "svg").toLowerCase()) : document.createElement("svg");
-            // tslint:disable-next-line:forin
-            for (var attribute in element) {
-                // Although this isn't a tween without prototypes, we do
-                // want to get hold of all attributes and not just own ones.
-                var value = element[attribute];
-                if (isString(attribute) && !(attribute[0] === "o" && attribute[1] === "n") && attribute !== attribute.toUpperCase() && !rxElement.test(attribute) && !(attribute in base) && !isFunction(value)) {
-                    // TODO: Should this all be set on the generic SVGElement, it would save space and time, but not as powerful
-                    registerNormalization([property, attribute, getAttribute(attribute)]);
-                }
-            }
-        } catch (e) {
-            console.error("VelocityJS: Error when trying to identify SVG attributes on " + property + ".", e);
-        }
-    }
-});
+// const base = document.createElement("div"),
+// 	rxSubtype = /^SVG(.*)Element$/,
+// 	rxElement = /Element$/;
+// Object.getOwnPropertyNames(window)
+// 	.forEach((property) => {
+// 		const subtype = rxSubtype.exec(property);
+// 		if (subtype && subtype[1] !== "SVG") { // Don't do SVGSVGElement.
+// 			try {
+// 				const element = subtype[1] ? document.createElementNS("http://www.w3.org/2000/svg", (subtype[1] || "svg").toLowerCase()) : document.createElement("svg");
+// 				// tslint:disable-next-line:forin
+// 				for (const attribute in element) {
+// 					// Although this isn't a tween without prototypes, we do
+// 					// want to get hold of all attributes and not just own ones.
+// 					const value = element[attribute];
+// 					if (isString(attribute)
+// 						&& !(attribute[0] === "o" && attribute[1] === "n")
+// 						&& attribute !== attribute.toUpperCase()
+// 						&& !rxElement.test(attribute)
+// 						&& !(attribute in base)
+// 						&& !isFunction(value)) {
+// 						// TODO: Should this all be set on the generic SVGElement, it would save space and time, but not as powerful
+// 						registerNormalization([property, attribute, getAttribute(attribute)]);
+// 					}
+// 				}
+// 			} catch (e) {
+// 				console.error(`VelocityJS: Error when trying to identify SVG attributes on ${property}.`, e);
+// 			}
+// 		}
+// 	});
 
 // Project
 /**
@@ -3894,132 +3896,110 @@ var Velocity$$1 = Velocity$1;
  */
 var VelocityStatic;
 (function (VelocityStatic) {
-    /**
-     * Actions cannot be replaced if they are internal (hasOwnProperty is false
-     * but they still exist). Otherwise they can be replaced by users.
-     *
-     * All external method calls should be using actions rather than sub-calls
-     * of Velocity itself.
-     */
-    VelocityStatic.Actions = Actions;
-    /**
-     * Our known easing functions.
-     */
-    VelocityStatic.Easings = Easings;
-    /**
-     * The currently registered sequences.
-     */
-    VelocityStatic.Sequences = SequencesObject;
-    /**
-     * Current internal state of Velocity.
-     */
-    VelocityStatic.State = State; // tslint:disable-line:no-shadowed-variable
-    /**
-     * Velocity option defaults, which can be overriden by the user.
-     */
-    VelocityStatic.defaults = defaults$1;
-    /**
-     * Used to patch any object to allow Velocity chaining. In order to chain an
-     * object must either be treatable as an array - with a <code>.length</code>
-     * property, and each member a Node, or a Node directly.
-     *
-     * By default Velocity will try to patch <code>window</code>,
-     * <code>jQuery</code>, <code>Zepto</code>, and several classes that return
-     * Nodes or lists of Nodes.
-     */
-    VelocityStatic.patch = patch;
-    /**
-     * Set to true, 1 or 2 (most verbose) to output debug info to console.
-     */
-    VelocityStatic.debug = false;
-    /**
-     * In mock mode, all animations are forced to complete immediately upon the
-     * next rAF tick. If there are further animations queued then they will each
-     * take one single frame in turn. Loops and repeats will be disabled while
-     * <code>mock = true</code>.
-     */
-    VelocityStatic.mock = false;
-    /**
-     * Save our version number somewhere visible.
-     */
-    VelocityStatic.version = VERSION;
-    /**
-     * Added as a fallback for "import {Velocity} from 'velocity-animate';".
-     */
-    VelocityStatic.Velocity = Velocity$1; // tslint:disable-line:no-shadowed-variable
+  /**
+   * Actions cannot be replaced if they are internal (hasOwnProperty is false
+   * but they still exist). Otherwise they can be replaced by users.
+   *
+   * All external method calls should be using actions rather than sub-calls
+   * of Velocity itself.
+   */
+  VelocityStatic.Actions = Actions;
+  /**
+   * Our known easing functions.
+   */
+  VelocityStatic.Easings = Easings;
+  /**
+   * The currently registered sequences.
+   */
+  VelocityStatic.Sequences = SequencesObject;
+  /**
+   * Current internal state of Velocity.
+   */
+  VelocityStatic.State = State; // tslint:disable-line:no-shadowed-variable
+  /**
+   * Velocity option defaults, which can be overriden by the user.
+   */
+  VelocityStatic.defaults = defaults$1;
+  /**
+   * Used to patch any object to allow Velocity chaining. In order to chain an
+   * object must either be treatable as an array - with a <code>.length</code>
+   * property, and each member a Node, or a Node directly.
+   *
+   * By default Velocity will try to patch <code>window</code>,
+   * <code>jQuery</code>, <code>Zepto</code>, and several classes that return
+   * Nodes or lists of Nodes.
+   */
+  VelocityStatic.patch = patch;
+  /**
+   * Set to true, 1 or 2 (most verbose) to output debug info to console.
+   */
+  VelocityStatic.debug = false;
+  /**
+   * In mock mode, all animations are forced to complete immediately upon the
+   * next rAF tick. If there are further animations queued then they will each
+   * take one single frame in turn. Loops and repeats will be disabled while
+   * <code>mock = true</code>.
+   */
+  VelocityStatic.mock = false;
+  /**
+   * Save our version number somewhere visible.
+   */
+  VelocityStatic.version = VERSION;
+  /**
+   * Added as a fallback for "import {Velocity} from 'velocity-animate';".
+   */
+  VelocityStatic.Velocity = Velocity$1; // tslint:disable-line:no-shadowed-variable
 })(VelocityStatic || (VelocityStatic = {}));
-/* IE detection. Gist: https://gist.github.com/julianshapiro/9098609 */
-var IE = function () {
-    if (document.documentMode) {
-        return document.documentMode;
-    } else {
-        for (var i = 7; i > 4; i--) {
-            var div = document.createElement("div");
-            div.innerHTML = "<!" + "--" + "[if IE " + i + "]><span></span><![endif]-->";
-            if (div.getElementsByTagName("span").length) {
-                div = null;
-                return i;
-            }
-        }
-    }
-    return undefined;
-}();
-/******************
- Unsupported
- ******************/
-if (IE <= 8) {
-    throw new Error("VelocityJS cannot run on Internet Explorer 8 or earlier");
-}
 /******************
  Frameworks
  ******************/
 if (window) {
-    /*
-     * Both jQuery and Zepto allow their $.fn object to be extended to allow
-     * wrapped elements to be subjected to plugin calls. If either framework is
-     * loaded, register a "velocity" extension pointing to Velocity's core
-     * animate() method. Velocity also registers itself onto a global container
-     * (window.jQuery || window.Zepto || window) so that certain features are
-     * accessible beyond just a per-element scope. Accordingly, Velocity can
-     * both act on wrapped DOM elements and stand alone for targeting raw DOM
-     * elements.
-     */
-    var jQuery = window.jQuery,
-        Zepto = window.Zepto;
-    patch(window, true);
-    patch(Element && Element.prototype);
-    patch(NodeList && NodeList.prototype);
-    patch(HTMLCollection && HTMLCollection.prototype);
-    patch(jQuery, true);
-    patch(jQuery && jQuery.fn);
-    patch(Zepto, true);
-    patch(Zepto && Zepto.fn);
+  /*
+   * Both jQuery and Zepto allow their $.fn object to be extended to allow
+   * wrapped elements to be subjected to plugin calls. If either framework is
+   * loaded, register a "velocity" extension pointing to Velocity's core
+   * animate() method. Velocity also registers itself onto a global container
+   * (window.jQuery || window.Zepto || window) so that certain features are
+   * accessible beyond just a per-element scope. Accordingly, Velocity can
+   * both act on wrapped DOM elements and stand alone for targeting raw DOM
+   * elements.
+   */
+  var jQuery = window.jQuery,
+      Zepto = window.Zepto;
+  patch(window, true);
+  patch(Element && Element.prototype);
+  patch(NodeList && NodeList.prototype);
+  patch(HTMLCollection && HTMLCollection.prototype);
+  patch(jQuery, true);
+  patch(jQuery && jQuery.fn);
+  patch(Zepto, true);
+  patch(Zepto && Zepto.fn);
 }
 // Make sure that the values within Velocity are read-only and upatchable.
 
 var _loop = function _loop(property) {
-    if (VelocityStatic.hasOwnProperty(property)) {
-        switch (typeof property === "undefined" ? "undefined" : _typeof(property)) {
-            case "number":
-            case "boolean":
-                defineProperty$1(Velocity$$1, property, {
-                    get: function get$$1() {
-                        return VelocityStatic[property];
-                    },
-                    set: function set$$1(value) {
-                        VelocityStatic[property] = value;
-                    }
-                }, true);
-                break;
-            default:
-                defineProperty$1(Velocity$$1, property, VelocityStatic[property], true);
-                break;
-        }
+  if (VelocityStatic.hasOwnProperty(property)) {
+    switch (typeof property === "undefined" ? "undefined" : _typeof(property)) {
+      case "number":
+      case "boolean":
+        defineProperty$1(Velocity$$1, property, {
+          get: function get$$1() {
+            return VelocityStatic[property];
+          },
+          set: function set$$1(value) {
+            VelocityStatic[property] = value;
+          }
+        }, true);
+        break;
+      default:
+        defineProperty$1(Velocity$$1, property, VelocityStatic[property], true);
+        break;
     }
+  }
 };
 
 for (var property in VelocityStatic) {
-    _loop(property);
+  _loop(property);
 }
 Object.freeze(Velocity$$1);
 
@@ -4713,132 +4693,110 @@ var Velocity$2 = Velocity$1;
  */
 var VelocityStatic$1;
 (function (VelocityStatic) {
-    /**
-     * Actions cannot be replaced if they are internal (hasOwnProperty is false
-     * but they still exist). Otherwise they can be replaced by users.
-     *
-     * All external method calls should be using actions rather than sub-calls
-     * of Velocity itself.
-     */
-    VelocityStatic.Actions = Actions;
-    /**
-     * Our known easing functions.
-     */
-    VelocityStatic.Easings = Easings;
-    /**
-     * The currently registered sequences.
-     */
-    VelocityStatic.Sequences = SequencesObject;
-    /**
-     * Current internal state of Velocity.
-     */
-    VelocityStatic.State = State; // tslint:disable-line:no-shadowed-variable
-    /**
-     * Velocity option defaults, which can be overriden by the user.
-     */
-    VelocityStatic.defaults = defaults$1;
-    /**
-     * Used to patch any object to allow Velocity chaining. In order to chain an
-     * object must either be treatable as an array - with a <code>.length</code>
-     * property, and each member a Node, or a Node directly.
-     *
-     * By default Velocity will try to patch <code>window</code>,
-     * <code>jQuery</code>, <code>Zepto</code>, and several classes that return
-     * Nodes or lists of Nodes.
-     */
-    VelocityStatic.patch = patch;
-    /**
-     * Set to true, 1 or 2 (most verbose) to output debug info to console.
-     */
-    VelocityStatic.debug = false;
-    /**
-     * In mock mode, all animations are forced to complete immediately upon the
-     * next rAF tick. If there are further animations queued then they will each
-     * take one single frame in turn. Loops and repeats will be disabled while
-     * <code>mock = true</code>.
-     */
-    VelocityStatic.mock = false;
-    /**
-     * Save our version number somewhere visible.
-     */
-    VelocityStatic.version = VERSION;
-    /**
-     * Added as a fallback for "import {Velocity} from 'velocity-animate';".
-     */
-    VelocityStatic.Velocity = Velocity$1; // tslint:disable-line:no-shadowed-variable
+  /**
+   * Actions cannot be replaced if they are internal (hasOwnProperty is false
+   * but they still exist). Otherwise they can be replaced by users.
+   *
+   * All external method calls should be using actions rather than sub-calls
+   * of Velocity itself.
+   */
+  VelocityStatic.Actions = Actions;
+  /**
+   * Our known easing functions.
+   */
+  VelocityStatic.Easings = Easings;
+  /**
+   * The currently registered sequences.
+   */
+  VelocityStatic.Sequences = SequencesObject;
+  /**
+   * Current internal state of Velocity.
+   */
+  VelocityStatic.State = State; // tslint:disable-line:no-shadowed-variable
+  /**
+   * Velocity option defaults, which can be overriden by the user.
+   */
+  VelocityStatic.defaults = defaults$1;
+  /**
+   * Used to patch any object to allow Velocity chaining. In order to chain an
+   * object must either be treatable as an array - with a <code>.length</code>
+   * property, and each member a Node, or a Node directly.
+   *
+   * By default Velocity will try to patch <code>window</code>,
+   * <code>jQuery</code>, <code>Zepto</code>, and several classes that return
+   * Nodes or lists of Nodes.
+   */
+  VelocityStatic.patch = patch;
+  /**
+   * Set to true, 1 or 2 (most verbose) to output debug info to console.
+   */
+  VelocityStatic.debug = false;
+  /**
+   * In mock mode, all animations are forced to complete immediately upon the
+   * next rAF tick. If there are further animations queued then they will each
+   * take one single frame in turn. Loops and repeats will be disabled while
+   * <code>mock = true</code>.
+   */
+  VelocityStatic.mock = false;
+  /**
+   * Save our version number somewhere visible.
+   */
+  VelocityStatic.version = VERSION;
+  /**
+   * Added as a fallback for "import {Velocity} from 'velocity-animate';".
+   */
+  VelocityStatic.Velocity = Velocity$1; // tslint:disable-line:no-shadowed-variable
 })(VelocityStatic$1 || (VelocityStatic$1 = {}));
-/* IE detection. Gist: https://gist.github.com/julianshapiro/9098609 */
-var IE$1 = function () {
-    if (document.documentMode) {
-        return document.documentMode;
-    } else {
-        for (var i = 7; i > 4; i--) {
-            var div = document.createElement("div");
-            div.innerHTML = "<!" + "--" + "[if IE " + i + "]><span></span><![endif]-->";
-            if (div.getElementsByTagName("span").length) {
-                div = null;
-                return i;
-            }
-        }
-    }
-    return undefined;
-}();
-/******************
- Unsupported
- ******************/
-if (IE$1 <= 8) {
-    throw new Error("VelocityJS cannot run on Internet Explorer 8 or earlier");
-}
 /******************
  Frameworks
  ******************/
 if (window) {
-    /*
-     * Both jQuery and Zepto allow their $.fn object to be extended to allow
-     * wrapped elements to be subjected to plugin calls. If either framework is
-     * loaded, register a "velocity" extension pointing to Velocity's core
-     * animate() method. Velocity also registers itself onto a global container
-     * (window.jQuery || window.Zepto || window) so that certain features are
-     * accessible beyond just a per-element scope. Accordingly, Velocity can
-     * both act on wrapped DOM elements and stand alone for targeting raw DOM
-     * elements.
-     */
-    var jQuery$1 = window.jQuery,
-        Zepto$1 = window.Zepto;
-    patch(window, true);
-    patch(Element && Element.prototype);
-    patch(NodeList && NodeList.prototype);
-    patch(HTMLCollection && HTMLCollection.prototype);
-    patch(jQuery$1, true);
-    patch(jQuery$1 && jQuery$1.fn);
-    patch(Zepto$1, true);
-    patch(Zepto$1 && Zepto$1.fn);
+  /*
+   * Both jQuery and Zepto allow their $.fn object to be extended to allow
+   * wrapped elements to be subjected to plugin calls. If either framework is
+   * loaded, register a "velocity" extension pointing to Velocity's core
+   * animate() method. Velocity also registers itself onto a global container
+   * (window.jQuery || window.Zepto || window) so that certain features are
+   * accessible beyond just a per-element scope. Accordingly, Velocity can
+   * both act on wrapped DOM elements and stand alone for targeting raw DOM
+   * elements.
+   */
+  var jQuery$1 = window.jQuery,
+      Zepto$1 = window.Zepto;
+  patch(window, true);
+  patch(Element && Element.prototype);
+  patch(NodeList && NodeList.prototype);
+  patch(HTMLCollection && HTMLCollection.prototype);
+  patch(jQuery$1, true);
+  patch(jQuery$1 && jQuery$1.fn);
+  patch(Zepto$1, true);
+  patch(Zepto$1 && Zepto$1.fn);
 }
 // Make sure that the values within Velocity are read-only and upatchable.
 
 var _loop$1 = function _loop(property) {
-    if (VelocityStatic$1.hasOwnProperty(property)) {
-        switch (typeof property === "undefined" ? "undefined" : _typeof(property)) {
-            case "number":
-            case "boolean":
-                defineProperty$1(Velocity$2, property, {
-                    get: function get$$1() {
-                        return VelocityStatic$1[property];
-                    },
-                    set: function set$$1(value) {
-                        VelocityStatic$1[property] = value;
-                    }
-                }, true);
-                break;
-            default:
-                defineProperty$1(Velocity$2, property, VelocityStatic$1[property], true);
-                break;
-        }
+  if (VelocityStatic$1.hasOwnProperty(property)) {
+    switch (typeof property === "undefined" ? "undefined" : _typeof(property)) {
+      case "number":
+      case "boolean":
+        defineProperty$1(Velocity$2, property, {
+          get: function get$$1() {
+            return VelocityStatic$1[property];
+          },
+          set: function set$$1(value) {
+            VelocityStatic$1[property] = value;
+          }
+        }, true);
+        break;
+      default:
+        defineProperty$1(Velocity$2, property, VelocityStatic$1[property], true);
+        break;
     }
+  }
 };
 
 for (var property$1 in VelocityStatic$1) {
-    _loop$1(property$1);
+  _loop$1(property$1);
 }
 Object.freeze(Velocity$2);
 

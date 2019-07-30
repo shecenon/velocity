@@ -31,9 +31,10 @@ export function Data(element: HTMLorSVGElement): ElementData {
 		const constructor = constructors[index];
 
 		if (isString(constructor)) {
-			if (element instanceof window[constructor]) {
-				types |= 1 << index; // tslint:disable-line:no-bitwise
-			}
+			console.warn("donot support", constructor);
+			// if (element instanceof window[constructor]) {
+			// 	types |= 1 << index; // tslint:disable-line:no-bitwise
+			// }
 		} else if (element instanceof constructor) {
 			types |= 1 << index; // tslint:disable-line:no-bitwise
 		}

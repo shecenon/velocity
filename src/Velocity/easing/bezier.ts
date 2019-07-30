@@ -45,8 +45,8 @@ export function generateBezier(mX1: number, mY1: number, mX2: number, mY2: numbe
 		SUBDIVISION_PRECISION = 0.0000001,
 		SUBDIVISION_MAX_ITERATIONS = 10,
 		kSplineTableSize = 11,
-		kSampleStepSize = 1 / (kSplineTableSize - 1),
-		float32ArraySupported = "Float32Array" in window;
+		kSampleStepSize = 1 / (kSplineTableSize - 1);
+		// float32ArraySupported = "Float32Array" in window;
 
 	/* Must contain four arguments. */
 	if (arguments.length !== 4) {
@@ -64,7 +64,8 @@ export function generateBezier(mX1: number, mY1: number, mX2: number, mY2: numbe
 	mX1 = fixRange(mX1);
 	mX2 = fixRange(mX2);
 
-	const mSampleValues = float32ArraySupported ? new Float32Array(kSplineTableSize) : new Array(kSplineTableSize);
+	// const mSampleValues = float32ArraySupported ? new Float32Array(kSplineTableSize) : new Array(kSplineTableSize);
+	const mSampleValues = new Array(kSplineTableSize);
 
 	function newtonRaphsonIterate(aX, aGuessT) {
 		for (let i = 0; i < NEWTON_ITERATIONS; ++i) {

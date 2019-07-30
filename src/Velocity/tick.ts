@@ -101,7 +101,7 @@ const FRAME_TIME = 1000 / 60,
 	 * Shim for window.performance in case it doesn't exist
 	 */
 	performance = (() => {
-		const perf = window.performance || {} as Performance;
+		const perf = {} as Performance;
 
 		if (typeof perf.now !== "function") {
 			const nowOffset = perf.timing && perf.timing.navigationStart ? perf.timing.navigationStart : now();
@@ -126,7 +126,7 @@ const FRAME_TIME = 1000 / 60,
 	/**
 	 * Either requestAnimationFrame, or a shim for it.
 	 */
-	rAFShim = window.requestAnimationFrame || rAFProxy;
+	rAFShim = rAFProxy;
 
 /**
  * Set if we are currently inside a tick() to prevent double-calling.

@@ -44,8 +44,8 @@ export function registerNormalization(
 		name: string = args[1],
 		callback = args[2];
 
-	if ((isString(constructor) && !(window[constructor] instanceof Object))
-		|| (!isString(constructor) && !(constructor instanceof Object))) {
+	if (//(isString(constructor) && !(window[constructor] instanceof Object)) ||
+	(!isString(constructor) && !(constructor instanceof Object))) {
 		console.warn(`VelocityJS: Trying to set 'registerNormalization' constructor to an invalid value:`, constructor);
 	} else if (!isString(name)) {
 		console.warn(`VelocityJS: Trying to set 'registerNormalization' name to an invalid value:`, name);
@@ -59,17 +59,19 @@ export function registerNormalization(
 			if (constructorCache.has(constructor)) {
 				index = constructors.indexOf(constructorCache.get(constructor));
 			} else {
-				for (const property in window) {
-					if (window[property] === constructor) {
-						index = constructors.indexOf(property);
-						if (index < 0) {
-							index = constructors.push(property) - 1;
-							Normalizations[index] = {};
-							constructorCache.set(constructor, property);
-						}
-						break;
-					}
-				}
+				console.warn(`VelocityJS: Do not support 'registerNormalization' :`, name, callback);
+
+				// for (const property in window) {
+				// 	if (window[property] === constructor) {
+				// 		index = constructors.indexOf(property);
+				// 		if (index < 0) {
+				// 			index = constructors.push(property) - 1;
+				// 			Normalizations[index] = {};
+				// 			constructorCache.set(constructor, property);
+				// 		}
+				// 		break;
+				// 	}
+				// }
 			}
 		}
 		if (index < 0) {
@@ -104,12 +106,14 @@ export function hasNormalization(args?: [ClassConstructor | string, string]): bo
 		if (constructorCache.has(constructor)) {
 			index = constructors.indexOf(constructorCache.get(constructor));
 		} else {
-			for (const property in window) {
-				if (window[property] === constructor) {
-					index = constructors.indexOf(property);
-					break;
-				}
-			}
+			console.warn(`VelocityJS: do not support property`, name);
+
+			// for (const property in window) {
+			// 	if (window[property] === constructor) {
+			// 		index = constructors.indexOf(property);
+			// 		break;
+			// 	}
+			// }
 		}
 	}
 
